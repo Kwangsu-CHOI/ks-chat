@@ -1,0 +1,65 @@
+.chatPage {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+	background-color: var(--background-chat);
+	border-radius: 20px;
+
+	.wrapper {
+		flex: 1;
+		overflow: scroll;
+		width: 100%;
+		display: flex;
+		justify-content: center;
+
+		.bin {
+			position: absolute;
+			right: 15px;
+			bottom: 30px;
+			background-color: transparent;
+			border: none;
+			height: 14px;
+			width: 14px;
+		}
+
+		.chat {
+			width: 70%;
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+			margin-top: 5px;
+
+			p,
+			li {
+				margin: 10px 0px;
+			}
+
+			.message {
+				padding: 10px 20px;
+
+				&.user {
+					background-color: var(--background-userChat);
+					font-weight: bold;
+					border-radius: 20px;
+					max-width: 80%;
+					align-self: flex-end;
+				}
+			}
+		}
+	}
+}
+
+@media screen and (max-width: 700px) {
+	.chatPage {
+		.wrapper {
+			max-height: 80vh;
+
+			-webkit-overflow-scrolling: touch;
+			.chat {
+				width: 90%;
+			}
+		}
+	}
+}
