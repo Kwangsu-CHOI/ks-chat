@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import "./newPrompt.css";
 import Upload from "../upload/Upload";
 import { IKImage } from "imagekitio-react";
 import model from "../../lib/gemini";
 import Markdown from "react-markdown";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const NewPrompt = ({ data }) => {
 	const [question, setQuestion] = useState("");
 	const [answer, setAnswer] = useState("");
-
 	const [img, setImg] = useState({
 		isLoading: false,
 		error: "",
@@ -20,7 +19,7 @@ const NewPrompt = ({ data }) => {
 	const chat = model.startChat({
 		history: [
 			data?.history.map(({ role, parts }) => ({
-				role: role || "user",
+				role,
 				parts: [{ text: parts[0].text }],
 			})),
 		],
@@ -54,7 +53,6 @@ const NewPrompt = ({ data }) => {
 			}).then((res) => res.json());
 		},
 		onSuccess: () => {
-			// Invalidate and refetch
 			queryClient
 				.invalidateQueries({ queryKey: ["chat", data._id] })
 				.then(() => {
@@ -84,13 +82,14 @@ const NewPrompt = ({ data }) => {
 			let accumulatedText = "";
 			for await (const chunk of result.stream) {
 				const chunkText = chunk.text();
+				console.log(chunkText);
 				accumulatedText += chunkText;
 				setAnswer(accumulatedText);
 			}
 
 			mutation.mutate();
-		} catch (error) {
-			console.log(error);
+		} catch (err) {
+			console.log(err);
 		}
 	};
 
@@ -103,20 +102,16 @@ const NewPrompt = ({ data }) => {
 		add(text, false);
 	};
 
-	const hasRun = useRef(false);
-
 	useEffect(() => {
-		if (!hasRun.current) {
-			if (data?.history?.length === 1) {
-				add(data.history[0].parts[0].text, true);
-			}
+		if (data?.history?.length === 1) {
+			add(data.history[0].parts[0].text, true);
 		}
-		hasRun.current = true;
 	}, []);
 
 	return (
 		<>
-			{img.isLoading && <div>Loading...</div>}
+			{/* ADD NEW CHAT */}
+			{img.isLoading && <div className="">Loading...</div>}
 			{img.dbData?.filePath && (
 				<IKImage
 					urlEndpoint={import.meta.env.VITE_IMAGE_KIT_ENDPOINT}
@@ -132,15 +127,16 @@ const NewPrompt = ({ data }) => {
 				</div>
 			)}
 			<div className="endChat" ref={endRef}></div>
-			<form onSubmit={handleSubmit} className="newForm" ref={formRef}>
+			<form className="newForm" onSubmit={handleSubmit} ref={formRef}>
 				<Upload setImg={setImg} />
-				<input type="file" id="file" multiple={false} hidden />
+				<input id="file" type="file" multiple={false} hidden />
 				<input type="text" name="text" placeholder="Ask anything..." />
 				<button>
-					<img src="/arrow.svg" alt="" />
+					<img src="/arrow.png" alt="" />
 				</button>
 			</form>
 		</>
 	);
 };
+
 export default NewPrompt;
