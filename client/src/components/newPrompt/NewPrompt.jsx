@@ -20,7 +20,7 @@ const NewPrompt = ({ data }) => {
 	const chat = model.startChat({
 		history: [
 			data?.history.map(({ role, parts }) => ({
-				role,
+				role: role || "user",
 				parts: [{ text: parts[0].text }],
 			})),
 		],
@@ -28,26 +28,6 @@ const NewPrompt = ({ data }) => {
 			// maxOutputTokens: 100,
 		},
 	});
-
-	const add = async (text, isInitial) => {
-		if (!isInitial) setQuestion(text);
-
-		try {
-			const result = await chat.sendMessageStream(
-				Object.entries(img.aiData).length ? [img.aiData, text] : [text]
-			);
-			let accumulatedText = "";
-			for await (const chunk of result.stream) {
-				const chunkText = chunk.text();
-				accumulatedText += chunkText;
-				setAnswer(accumulatedText);
-			}
-
-			mutation.mutate();
-		} catch (error) {
-			console.log(error);
-		}
-	};
 
 	const endRef = useRef(null);
 	const formRef = useRef(null);
@@ -93,6 +73,26 @@ const NewPrompt = ({ data }) => {
 			console.log(err);
 		},
 	});
+
+	const add = async (text, isInitial) => {
+		if (!isInitial) setQuestion(text);
+
+		try {
+			const result = await chat.sendMessageStream(
+				Object.entries(img.aiData).length ? [img.aiData, text] : [text]
+			);
+			let accumulatedText = "";
+			for await (const chunk of result.stream) {
+				const chunkText = chunk.text();
+				accumulatedText += chunkText;
+				setAnswer(accumulatedText);
+			}
+
+			mutation.mutate();
+		} catch (error) {
+			console.log(error);
+		}
+	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
