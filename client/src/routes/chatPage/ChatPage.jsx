@@ -19,7 +19,8 @@ const ChatPage = () => {
 			}).then((res) => res.json()),
 	});
 
-	console.log(data);
+	console.log(data.history.parts[0]);
+	console.log(data.history.role);
 
 	const handleDelete = async () => {
 		if (window.confirm("Are you sure you want to delete this chat?")) {
