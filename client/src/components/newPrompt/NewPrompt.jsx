@@ -28,6 +28,8 @@ const NewPrompt = ({ data }) => {
 		},
 	});
 
+	console.log(data);
+
 	const endRef = useRef(null);
 	const formRef = useRef(null);
 

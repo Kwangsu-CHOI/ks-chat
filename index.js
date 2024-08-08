@@ -15,24 +15,6 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// const corsOptions = {
-// 	origin: (origin, callback) => {
-// 		const allowedOrigins = [
-// 			"https://cks-ai.vercel.app",
-// 			"http://localhost:5173",
-// 		];
-
-// 		if (!origin || allowedOrigins.includes(origin)) {
-// 			callback(null, true);
-// 		} else {
-// 			callback(new Error("Not allowed by CORS"));
-// 		}
-// 	},
-// 	methods: ["GET", "POST", "PUT", "DELETE"], // Adjust as needed
-// 	allowedHeaders: ["Content-Type", "Authorization"], // Adjust as needed
-// };
-// app.use(cors(corsOptions));
-
 app.use(
 	cors({
 		origin: process.env.CLIENT_URL,
@@ -45,9 +27,9 @@ app.use(express.json());
 const connect = async () => {
 	try {
 		await mongoose.connect(process.env.MONGO);
-		console.log("Connected to MongoDb");
-	} catch (error) {
-		console.log(error);
+		console.log("Connected to MongoDB");
+	} catch (err) {
+		console.log(err);
 	}
 };
 
@@ -62,18 +44,12 @@ app.get("/api/upload", (req, res) => {
 	res.send(result);
 });
 
-// app.get("/api/tests", ClerkExpressRequireAuth(), (req, res) => {
-// 	const userId = req.auth.userId;
-// 	console.log(userId);
-// 	res.send("success!!!");
-// });
-
 app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
 	const userId = req.auth.userId;
 	const { text } = req.body;
 
 	try {
-		// create new chat
+		// CREATE A NEW CHAT
 		const newChat = new Chat({
 			userId: userId,
 			history: [{ role: "user", parts: [{ text }] }],
@@ -81,21 +57,24 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
 
 		const savedChat = await newChat.save();
 
-		//check if chat exists
+		// CHECK IF THE USERCHATS EXISTS
 		const userChats = await UserChats.find({ userId: userId });
 
+		// IF DOESN'T EXIST CREATE A NEW ONE AND ADD THE CHAT IN THE CHATS ARRAY
 		if (!userChats.length) {
 			const newUserChats = new UserChats({
 				userId: userId,
 				chats: [
 					{
-						_id: savedChat.id,
+						_id: savedChat._id,
 						title: text.substring(0, 40),
 					},
 				],
 			});
+
 			await newUserChats.save();
 		} else {
+			// IF EXISTS, PUSH THE CHAT TO THE EXISTING ARRAY
 			await UserChats.updateOne(
 				{ userId: userId },
 				{
@@ -110,9 +89,9 @@ app.post("/api/chats", ClerkExpressRequireAuth(), async (req, res) => {
 
 			res.status(201).send(newChat._id);
 		}
-	} catch (error) {
-		console.log(error);
-		res.status(500).send("Error creating chat");
+	} catch (err) {
+		console.log(err);
+		res.status(500).send("Error creating chat!");
 	}
 });
 
@@ -164,9 +143,9 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
 			}
 		);
 		res.status(200).send(updatedChat);
-	} catch (error) {
-		console.log(error);
-		res.status(500).send("Error adding chat");
+	} catch (err) {
+		console.log(err);
+		res.status(500).send("Error adding conversation!");
 	}
 });
 
@@ -180,15 +159,8 @@ app.delete("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
 			},
 			{ $pull: { chats: { _id: req.params.id } } }
 		);
-		// console.log(
-		// 	UserChats.findOne({
-		// 		userId: userId,
-		// 		chats: { $elemMatch: { _id: req.params.id } },
-		// 	})
-		// );
 
 		res.send(chat);
-		// res.status(200).json({ success: true, message: "Successfully deleted!" });
 	} catch (error) {
 		console.log(error);
 		res.status(500).send("Error adding message");
